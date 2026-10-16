@@ -1,0 +1,25 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Token Lab · 代码与模型之间</title>
+<style>body{font-family:system-ui,"PingFang SC",sans-serif;max-width:900px;margin:24px auto;padding:0 12px;color:#222}
+textarea{width:100%;height:140px;font-size:15px}.tok{display:inline-block;margin:1px;padding:2px 3px;border-radius:3px;white-space:pre;font-family:monospace}
+.row{margin:10px 0}input{width:90px}table{border-collapse:collapse}td,th{border:1px solid #ccc;padding:4px 8px}small{color:#666}</style></head><body>
+<h2>Token Lab：看看模型眼里的文字</h2>
+<div class="row"><textarea id="t">你好，大模型！Hello, large language models. 2026-10-16</textarea></div>
+<div class="row">分词器：<select id="e"><option>o200k_base</option><option>cl100k_base</option></select>
+<label><input type="checkbox" id="ids"> 显示 token id</label></div>
+<div class="row" id="stat"></div><div class="row" id="out"></div>
+<h3>成本估算</h3>
+<div class="row">输入 token：<input id="in" type="number"> 预计输出 token：<input id="outn" type="number" value="500"> 调用次数：<input id="n" type="number" value="1000"></div>
+<div class="row">单价（美元 / 百万 token）输入：<input id="pi" type="number" step="0.01" value="2"> 输出：<input id="po" type="number" step="0.01" value="10">
+<br><small>默认值为 Gemini 4 Argon 的首发价（$2/$10，2026-11-30 后为 $4/$20，见 Google 官方博客）。不同厂商的分词器不同，这里的计数只是近似。</small></div>
+<div class="row" id="cost"></div>
+<script>
+const C=["#fde2e2","#e2f0fd","#e5fde2","#fdf6e2","#efe2fd"];
+async function run(){const r=await fetch("/api/tokenize",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:t.value,encoding:e.value})});const d=await r.json();
+stat.textContent=`${d.chars} 个字符 → ${d.count} 个 token（${(d.chars/Math.max(d.count,1)).toFixed(2)} 字符/token）`;
+out.innerHTML="";d.tokens.forEach((k,i)=>{const s=document.createElement("span");s.className="tok";s.style.background=C[i%5];s.textContent=ids.checked?k.id:k.text;s.title="id "+k.id;out.appendChild(s)});
+document.getElementById("in").value=d.count;cost_()}
+function cost_(){const c=((+document.getElementById("in").value)*(+pi.value)+(+outn.value)*(+po.value))/1e6;cost.textContent=`单次约 $${c.toFixed(6)}，${n.value} 次约 $${(c*n.value).toFixed(4)}`}
+let tm;t.oninput=()=>{clearTimeout(tm);tm=setTimeout(run,250)};e.onchange=run;ids.onchange=run;
+["in","outn","n","pi","po"].forEach(x=>document.getElementById(x).oninput=cost_);run();
+</script></body></html>

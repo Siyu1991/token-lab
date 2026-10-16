@@ -1,0 +1,14 @@
+[Unit]
+Description=Token Lab
+After=network.target
+
+[Service]
+WorkingDirectory=/opt/tokenlab
+Environment=TIKTOKEN_CACHE_DIR=/opt/tokenlab/tiktoken_cache
+ExecStart=/opt/tokenlab/.venv/bin/uvicorn app:app --host 127.0.0.1 --port 8800 --workers 1
+Restart=always
+User=nobody
+Group=nobody
+
+[Install]
+WantedBy=multi-user.target
